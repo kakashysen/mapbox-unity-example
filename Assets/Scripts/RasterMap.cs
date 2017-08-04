@@ -3,43 +3,28 @@ using Mapbox.Map;
 using Mapbox.Unity;
 using Mapbox.Utils;
 using Mapbox.Unity.Utilities;
+using Mapbox.Unity.Map;
 
-public class RasterMap : MonoBehaviour, Mapbox.Utils.IObserver<RasterTile>
+public class RasterMap : MonoBehaviour
 {
+	[SerializeField]
+	public AbstractMap _map;
+	public GameObject current;
 
-	Map<RasterTile> map;
+	void Start(){
 
-	void Start()
-	{
-		map = new Map<RasterTile>(MapboxAccess.Instance);
-		map.Zoom = 2;
-		map.Vector2dBounds = Vector2dBounds.World();
-		map.MapId = "mapbox://styles/mapbox/streets-v10";
-		map.Subscribe(this);
-		map.Update();
-	}
+		double lat = 4.697626d;
+		double lng = -74.055002d;
 
-	public void OnNext(RasterTile tile)
-	{
-		if (tile.CurrentState == Tile.State.Loaded)
-		{
-			if (tile.HasError)
-			{
-				Debug.Log("RasterMap: " + tile.ExceptionsAsString);
-				return;
-			}
-
-			var tileQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-			tileQuad.transform.SetParent(transform);
-			tileQuad.name = tile.Id.ToString();
-			tileQuad.transform.position = new Vector3(tile.Id.X, -tile.Id.Y, 0);
-			var texture = new Texture2D(0, 0);
-			texture.LoadImage(tile.Data);
-			var material = new Material(Shader.Find("Unlit/Texture"));
-			material.mainTexture = texture;
-			tileQuad.GetComponent<MeshRenderer>().sharedMaterial = material;
+		Mapbox.Utils.Vector2d foursquareLocation = new Mapbox.Utils.Vector2d (lat,lng );
+		Vector3 _targetPosition = Conversions.GeoToWorldPosition (foursquareLocation,
+			_map.CenterMercator,
+			_map.WorldRelativeScale).ToVector3xz ();
 
 
-		}
+		Debug.Log ("foursquareLocation" + foursquareLocation.x +" - " + foursquareLocation.y);
+		current.transform.position = _targetPosition;
+		//current.transform.localScale = new Vector3(0.0009F, 0.009F, 0.0009F);
+		Debug.Log ("Entreooooooooo!!!!!! "+ _targetPosition.x +" - "+ _targetPosition.y +" - "+ _targetPosition.z);
 	}
 }
